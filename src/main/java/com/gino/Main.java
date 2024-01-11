@@ -19,7 +19,7 @@ public class Main {
 
         try {
             // Connect to your database (replace with your actual database connection details)
-            Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/your_database", "username", "password");
+            Connection connection = DriverManager.getConnection("jdbc:postgresql://localhost:3306/calvino_academy", "root", "");
 
             // Execute your SQL query (replace with your actual query)
             String sqlQuery = "SELECT column_name FROM your_table";
