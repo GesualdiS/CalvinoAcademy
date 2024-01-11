@@ -52,7 +52,7 @@ public class Main {
             }
 
             // Save the Word document
-            try (FileOutputStream out = new FileOutputStream("output.docx")) {
+            try (FileOutputStream out = new FileOutputStream("result.docx")) {
                 document.write(out);
                 System.out.println("Word document created successfully.");
             }
