@@ -7,8 +7,9 @@ import java.util.List;
 public class Main {
 
     public static void main(String[] args) {
+        String query = "Inserisci la query che vuoi eseguire";
         // Perform your database query and get the result
-        List<String> result = performDatabaseQuery();
+        List<String> result = performDatabaseQuery(query);
 
         // Generate Word document
         generateWordDocument(result);
