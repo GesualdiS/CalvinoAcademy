@@ -1,63 +1,28 @@
-import org.apache.poi.xwpf.usermodel.*;
-import java.io.FileOutputStream;
-import java.sql.*;
-import java.util.ArrayList;
+package com.gino;
+
 import java.util.List;
 
 public class Main {
-
     public static void main(String[] args) {
-        String query = "Inserisci la query che vuoi eseguire";
-        // Perform your database query and get the result
-        List<String> result = performDatabaseQuery(query);
+        // Inserire la query che si vuole eseguire
+        String query = "SELECT u.email, cl.name, c.title, COUNT(p.id) AS presences FROM ca_users AS u\n" +
+                "INNER JOIN ca_frequented_classes AS fc\n" +
+                "ON u.id = fc.user_id AND fc.school_class_id = 3\n" +
+                "INNER JOIN ca_school_classes AS cl ON fc.school_class_id = cl.id\n" +
+                "LEFT JOIN ca_presences AS p\n" +
+                "ON p.user_id = u.id\n" +
+                "INNER JOIN ca_activities as a\n" +
+                "ON a.id = p.activity_id AND a.course_id = 2\n" +
+                "INNER JOIN ca_courses as c\n" +
+                "ON a.course_id = c.id\n" +
+                "GROUP BY u.id;";
+        String databaseUrl = "jdbc:mysql://localhost:3306/calvino_academy";
+        String username = "root";
+        String password = "";
 
-        // Generate Word document
-        generateWordDocument(result);
-    }
-
-    private static List<String> performDatabaseQuery(String query) {
-        List<String> resultList = new ArrayList<>();
-
-        try {
-            // Connect to your database (replace with your actual database connection details)
-            Connection connection = DriverManager.getConnection("jdbc:postgresql://localhost:3306/calvino_academy", "root", "");
-
-            // Execute your SQL query (replace with your actual query)
-            try (PreparedStatement preparedStatement = connection.prepareStatement(query);
-                 ResultSet resultSet = preparedStatement.executeQuery()) {
-                while (resultSet.next()) {
-                    ResultSetMetaData metaData = resultSet.getMetaData();
-                    int columnCount = metaData.getColumnCount();
-
-                    for (int i = 1; i <= columnCount; i++) {
-                        String value = resultSet.getString(i);
-                        resultList.add(value);
-                    }
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return resultList;
-    }
-
-    private static void generateWordDocument(List<String> result) {
-        try (XWPFDocument document = new XWPFDocument()) {
-            // Create Word document content based on your query result
-            for (String value : result) {
-                XWPFParagraph paragraph = document.createParagraph();
-                XWPFRun run = paragraph.createRun();
-                run.setText(value); // Add the actual content from your query result
-            }
-
-            // Save the Word document
-            try (FileOutputStream out = new FileOutputStream("result.docx")) {
-                document.write(out);
-                System.out.println("Word document created successfully.");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        DatabaseManager databaseManager = new DatabaseManager(databaseUrl, username, password);
+        List<String> result = databaseManager.performQuery(query);
+        System.out.println(databaseManager.getCountedRows());
+        WordDocumentGenerator.generateWordDocument(result, databaseManager.getCountedColumns(), databaseManager.getCountedRows());
     }
 }
