@@ -25,12 +25,14 @@ public class Main {
             // Execute your SQL query (replace with your actual query)
             try (PreparedStatement preparedStatement = connection.prepareStatement(query);
                  ResultSet resultSet = preparedStatement.executeQuery()) {
-
-                // Process the query result
                 while (resultSet.next()) {
-                    // Replace "column_name" with the actual column name from your query result
-                    String value = resultSet.getString("column_name");
-                    resultList.add(value);
+                    ResultSetMetaData metaData = resultSet.getMetaData();
+                    int columnCount = metaData.getColumnCount();
+
+                    for (int i = 1; i <= columnCount; i++) {
+                        String value = resultSet.getString(i);
+                        resultList.add(value);
+                    }
                 }
             }
         } catch (SQLException e) {
