@@ -14,7 +14,7 @@ public class Main {
         generateWordDocument(result);
     }
 
-    private static List<String> performDatabaseQuery() {
+    private static List<String> performDatabaseQuery(String query) {
         List<String> resultList = new ArrayList<>();
 
         try {
@@ -22,8 +22,7 @@ public class Main {
             Connection connection = DriverManager.getConnection("jdbc:postgresql://localhost:3306/calvino_academy", "root", "");
 
             // Execute your SQL query (replace with your actual query)
-            String sqlQuery = "SELECT column_name FROM your_table";
-            try (PreparedStatement preparedStatement = connection.prepareStatement(sqlQuery);
+            try (PreparedStatement preparedStatement = connection.prepareStatement(query);
                  ResultSet resultSet = preparedStatement.executeQuery()) {
 
                 // Process the query result
