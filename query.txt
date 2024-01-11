@@ -1,0 +1,76 @@
+2. Query:
+a. l’elenco degli alunni iscritti ad un corso con il numero di ore di presenza valide per il PCTO e la loro percentuale sul totale delle ore di lezione svolte
+SELECT u.email, COUNT(p.id) * HOUR(TIMEDIFF(a.ended_at, a.started_at)) AS pcto_hours FROM ca_presences AS p
+RIGHT JOIN ca_activities AS a
+ON p.activity_id = a.id AND a.course_id = 2
+INNER JOIN ca_users AS u ON p.user_id = u.id GROUP BY u.id;
+-- a.course_id è il corso che ci interessa (in questo esempio 2)
+
+ b. l’elenco degli alunni di una classe con le presenze in un dato corso
+SELECT u.email, cl.name, c.title, COUNT(p.id) AS presences FROM ca_users AS u
+INNER JOIN ca_frequented_classes AS fc
+ON u.id = fc.user_id AND fc.school_class_id = 3
+INNER JOIN ca_school_classes AS cl ON fc.school_class_id = cl.id
+LEFT JOIN ca_presences AS p
+ON p.user_id = u.id
+INNER JOIN ca_activities as a
+ON a.id = p.activity_id AND a.course_id = 2
+INNER JOIN ca_courses as c
+ON a.course_id = c.id
+GROUP BY u.id;
+-- fc.school_class_id è la classe che ci interessa, mentre a.course_id è il corso
+c. l’elenco delle lezioni di un docente con la data e la durata di ciascuna lezione.
+SELECT u.email,
+c.title,
+GROUP_CONCAT(DISTINCT CONCAT('start: ', a.started_at, ', end: ', a.ended_at) SEPARATOR ' |
+') AS time_tables
+FROM ca_teacher_registrations AS tr
+INNER JOIN ca_users AS u
+ON tr.user_id = u.id AND u.id = 128
+INNER JOIN ca_courses AS c
+ON c.id = tr.course_id
+INNER JOIN ca_activities AS a
+ON a.course_id = c.id
+GROUP BY c.id;
+-- questa query stamperà gli orari di un docente e i suoi corsi
+3. Query:
+a. l’elenco degli alunni iscritti ad un corso con il numero di ore di presenza valide per il PCTO e la loro percentuale sul totale delle ore di lezione svolte
+CREATE VIEW ca_courses_hours AS
+SELECT c.id, COUNT(a.id) * HOUR(TIMEDIFF(a.ended_at, a.started_at)) AS hours FROM ca_courses as c
+INNER JOIN ca_activities AS a
+ON a.course_id = c.id
+GROUP BY c.id; -- userò questa view per la query
+
+ SELECT u.email,
+COUNT(p.id) * HOUR(TIMEDIFF(a.ended_at, a.started_at)) AS pcto_hours, CONCAT(ROUND(100 / ch.hours * (COUNT(p.id) * HOUR(TIMEDIFF(a.ended_at,
+a.started_at)))), '%')
+FROM ca_presences AS p
+RIGHT JOIN ca_activities AS a
+ON p.activity_id = a.id AND a.course_id = 5 -- il 5 è il corso che ci interessa INNER JOIN ca_users AS u ON p.user_id = u.id
+INNER JOIN ca_courses_hours AS ch
+ON a.course_id = ch.id
+GROUP BY u.id;
+b. l’elenco degli alunni di una classe con le presenze di ciascuno a ogni corso frequentato e il totale complessivo
+SELECT u.email, cl.name, c.title, COUNT(p.id) AS presences FROM ca_users AS u
+INNER JOIN ca_frequented_classes AS fc
+ON u.id = fc.user_id AND fc.school_class_id = 1
+INNER JOIN ca_school_classes AS cl ON fc.school_class_id = cl.id
+LEFT JOIN ca_presences AS p
+ON p.user_id = u.id
+INNER JOIN ca_activities as a ON a.id = p.activity_id INNER JOIN ca_courses as c ON a.course_id = c.id
+GROUP BY u.id, c.id;
+-- fc.school_class_id è la classe che ci interessa
+c. l’elenco dei docenti di ciascun corso con la data e la durata di ciascuna lezione e un totale riepilogativo.
+SELECT
+c.title,
+GROUP_CONCAT(DISTINCT u.name SEPARATOR ', ') AS teachers, GROUP_CONCAT(DISTINCT CONCAT('start: ', a.started_at, ', end: ', a.ended_at) SEPARATOR ' |
+') AS time_tables
+FROM ca_courses as c
+LEFT JOIN ca_teacher_registrations AS tr
+ON c.id = tr.course_id
+INNER JOIN ca_users AS u
+ON u.id = tr.user_id
+INNER JOIN ca_activities AS a
+ON a.course_id = c.id
+GROUP BY c.id;
+-- questa query stamperà tutti i corsi e i suoi insegnanti
